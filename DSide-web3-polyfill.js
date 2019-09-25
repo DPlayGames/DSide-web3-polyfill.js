@@ -119,8 +119,8 @@ else {
 		
 		let CONNECT_TO_WEB_SOCKET_SERVER = (portOrParams, connectionListenerOrListeners) => {
 			//REQUIRED: portOrParams
-			//OPTIONAL: portOrParams.isSecure
-			//OPTIONAL: portOrParams.host
+			//REQUIRED: portOrParams.isSecure
+			//REQUIRED: portOrParams.host
 			//REQUIRED: portOrParams.port
 			//REQUIRED: connectionListenerOrListeners
 			//REQUIRED: connectionListenerOrListeners.success
@@ -148,14 +148,6 @@ else {
 				isSecure = portOrParams.isSecure;
 				host = portOrParams.host;
 				port = portOrParams.port;
-			}
-			
-			if (isSecure === undefined) {
-				isSecure = BROWSER_CONFIG.isSecure;
-			}
-			
-			if (host === undefined) {
-				host = BROWSER_CONFIG.host;
 			}
 	
 			if (CHECK_IS_DATA(connectionListenerOrListeners) !== true) {
@@ -412,7 +404,7 @@ else {
 				
 				CONNECT_TO_WEB_SOCKET_SERVER({
 					host : splits[0],
-					port : INTEGER(splits[1])
+					port : parseInt(splits[1])
 				}, {
 					error : () => {
 						// 연결 오류를 무시합니다.
@@ -480,7 +472,7 @@ else {
 			
 			CONNECT_TO_WEB_SOCKET_SERVER({
 				host : splits[0],
-				port : INTEGER(splits[1])
+				port : parseInt(splits[1])
 			}, {
 				error : () => {
 					// 연결 오류를 무시합니다.
@@ -516,14 +508,6 @@ else {
 			//REQUIRED: date
 			
 			return new Date(date.getTime() - timeDiffWithNode);
-		};
-		
-		// 특정 계정의 d 잔고를 가져옵니다.
-		let getDBalance = self.getDBalance = (accountId, callback) => {
-			//REQUIRED: accountId
-			//REQUIRED: callback
-			
-			sendToNode('getDBalance', accountId, callback);
 		};
 		
 		let seperateHandler = (callbackOrHandlers) => {
