@@ -518,6 +518,14 @@ else {
 			return new Date(date.getTime() - timeDiffWithNode);
 		};
 		
+		// 특정 계정의 d 잔고를 가져옵니다.
+		let getDBalance = self.getDBalance = (accountId, callback) => {
+			//REQUIRED: accountId
+			//REQUIRED: callback
+			
+			sendToNode('getDBalance', accountId, callback);
+		};
+		
 		let seperateHandler = (callbackOrHandlers) => {
 			//REQUIRED: callbackOrHandlers
 			//OPTIONAL: callbackOrHandlers.notValid
