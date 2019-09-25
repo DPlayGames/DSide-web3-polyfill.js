@@ -11,6 +11,318 @@ else if (window.web3 === undefined) {
 else {
 	
 	window.DSide = (() => {
+		
+		let TO_DELETE = null;
+		
+		let SHOW_ERROR = (tag, errorMsg, params) => {
+			//REQUIRED: tag
+			//REQUIRED: errorMsg
+			//OPTIONAL: params
+			
+			let cal = CALENDAR();
+				
+			console.error(cal.getYear() + '-' + cal.getMonth(true) + '-' + cal.getDate(true) + ' ' + cal.getHour(true) + ':' + cal.getMinute(true) + ':' + cal.getSecond(true) + ' [' + tag + '] 오류가 발생했습니다. 오류 메시지: ' + errorMsg);
+			
+			if (params !== undefined) {
+				console.error('다음은 오류를 발생시킨 파라미터입니다.');
+				console.error(JSON.stringify(params, TO_DELETE, 4));
+			}
+		};
+		
+		let CHECK_IS_DATA = (target) => {
+			//OPTIONAL: target
+	
+			if (
+			target !== undefined &&
+			target !== TO_DELETE &&
+			CHECK_IS_ARRAY(target) !== true &&
+			target instanceof Date !== true &&
+			target instanceof RegExp !== true &&
+			typeof target === 'object') {
+				return true;
+			}
+	
+			return false;
+		};
+		
+		let CHECK_IS_ARRAY = (target) => {
+			//OPTIONAL: target
+	
+			if (
+			target !== undefined &&
+			target !== TO_DELETE &&
+			typeof target === 'object' &&
+			Object.prototype.toString.call(target) === '[object Array]') {
+				return true;
+			}
+	
+			return false;
+		};
+		
+		let EACH = (dataOrArrayOrString, func) => {
+			//OPTIONAL: dataOrArrayOrString
+			//REQUIRED: func
+			
+			if (dataOrArrayOrString === undefined) {
+				return false;
+			}
+	
+			// when dataOrArrayOrString is data
+			else if (CHECK_IS_DATA(dataOrArrayOrString) === true) {
+	
+				for (let name in dataOrArrayOrString) {
+					if (dataOrArrayOrString.hasOwnProperty === undefined || dataOrArrayOrString.hasOwnProperty(name) === true) {
+						if (func(dataOrArrayOrString[name], name) === false) {
+							return false;
+						}
+					}
+				}
+			}
+	
+			// when dataOrArrayOrString is func
+			else if (func === undefined) {
+	
+				func = dataOrArrayOrString;
+				dataOrArrayOrString = undefined;
+	
+				return (dataOrArrayOrString) => {
+					return EACH(dataOrArrayOrString, func);
+				};
+			}
+	
+			// when dataOrArrayOrString is array or string
+			else {
+	
+				let length = dataOrArrayOrString.length;
+	
+				for (let i = 0; i < length; i += 1) {
+	
+					if (func(dataOrArrayOrString[i], i) === false) {
+						return false;
+					}
+	
+					// when shrink
+					if (dataOrArrayOrString.length < length) {
+						i -= length - dataOrArrayOrString.length;
+						length -= length - dataOrArrayOrString.length;
+					}
+	
+					// when stretch
+					else if (dataOrArrayOrString.length > length) {
+						length += dataOrArrayOrString.length - length;
+					}
+				}
+			}
+	
+			return true;
+		};
+		
+		let CONNECT_TO_WEB_SOCKET_SERVER = (portOrParams, connectionListenerOrListeners) => {
+			//REQUIRED: portOrParams
+			//OPTIONAL: portOrParams.isSecure
+			//OPTIONAL: portOrParams.host
+			//REQUIRED: portOrParams.port
+			//REQUIRED: connectionListenerOrListeners
+			//REQUIRED: connectionListenerOrListeners.success
+			//OPTIONAL: connectionListenerOrListeners.error
+	
+			let isSecure;
+			let host;
+			let port;
+	
+			let connectionListener;
+			let errorListener;
+			
+			let isConnected;
+	
+			let methodMap = {};
+			let sendKey = 0;
+			
+			let on;
+			let off;
+			let send;
+	
+			if (CHECK_IS_DATA(portOrParams) !== true) {
+				port = portOrParams;
+			} else {
+				isSecure = portOrParams.isSecure;
+				host = portOrParams.host;
+				port = portOrParams.port;
+			}
+			
+			if (isSecure === undefined) {
+				isSecure = BROWSER_CONFIG.isSecure;
+			}
+			
+			if (host === undefined) {
+				host = BROWSER_CONFIG.host;
+			}
+	
+			if (CHECK_IS_DATA(connectionListenerOrListeners) !== true) {
+				connectionListener = connectionListenerOrListeners;
+			} else {
+				connectionListener = connectionListenerOrListeners.success;
+				errorListener = connectionListenerOrListeners.error;
+			}
+	
+			let runMethods = (methodName, data, sendKey) => {
+	
+				let methods = methodMap[methodName];
+	
+				if (methods !== undefined) {
+	
+					EACH(methods, (method) => {
+	
+						// run method.
+						method(data,
+	
+						// ret.
+						(retData) => {
+	
+							if (send !== undefined && sendKey !== undefined) {
+	
+								send({
+									methodName : '__CALLBACK_' + sendKey,
+									data : retData
+								});
+							}
+						});
+					});
+				}
+			};
+	
+			let conn = new WebSocket((isSecure === true ? 'wss://': 'ws://') + host + ':' + port);
+	
+			conn.onopen = () => {
+	
+				isConnected = true;
+	
+				connectionListener(
+	
+				// on.
+				on = (methodName, method) => {
+					//REQUIRED: methodName
+					//REQUIRED: method
+	
+					let methods = methodMap[methodName];
+	
+					if (methods === undefined) {
+						methods = methodMap[methodName] = [];
+					}
+	
+					methods.push(method);
+				},
+	
+				// off.
+				off = (methodName, method) => {
+					//REQUIRED: methodName
+					//OPTIONAL: method
+	
+					let methods = methodMap[methodName];
+	
+					if (methods !== undefined) {
+	
+						if (method !== undefined) {
+	
+							REMOVE({
+								array : methods,
+								value : method
+							});
+	
+						} else {
+							delete methodMap[methodName];
+						}
+					}
+				},
+	
+				// send to server.
+				send = (methodNameOrParams, callback) => {
+					//REQUIRED: methodNameOrParams
+					//REQUIRED: methodNameOrParams.methodName
+					//OPTIONAL: methodNameOrParams.data
+					//OPTIONAL: callback
+					
+					let methodName;
+					let data;
+					let callbackName;
+					
+					if (CHECK_IS_DATA(methodNameOrParams) !== true) {
+						methodName = methodNameOrParams;
+					} else {
+						methodName = methodNameOrParams.methodName;
+						data = methodNameOrParams.data;
+					}
+					
+					if (conn !== undefined) {
+						
+						conn.send(STRINGIFY({
+							methodName : methodName,
+							data : data,
+							sendKey : sendKey
+						}));
+		
+						if (callback !== undefined) {
+							
+							callbackName = '__CALLBACK_' + sendKey;
+		
+							// on callback.
+							on(callbackName, (data) => {
+		
+								// run callback.
+								callback(data);
+		
+								// off callback.
+								off(callbackName);
+							});
+						}
+		
+						sendKey += 1;
+					}
+				},
+	
+				// disconnect.
+				() => {
+					if (conn !== undefined) {
+						conn.close();
+						conn = undefined;
+					}
+				});
+			};
+	
+			// receive data.
+			conn.onmessage = (e) => {
+	
+				let params = PARSE_STR(e.data);
+	
+				if (params !== undefined) {
+					runMethods(params.methodName, params.data, params.sendKey);
+				}
+			};
+	
+			// when disconnected
+			conn.onclose = () => {
+				runMethods('__DISCONNECTED');
+			};
+	
+			// when error
+			conn.onerror = (error) => {
+	
+				let errorMsg = error.toString();
+	
+				if (isConnected !== true) {
+	
+					if (errorListener !== undefined) {
+						errorListener(errorMsg);
+					} else {
+						SHOW_ERROR('CONNECT_TO_WEB_SOCKET_SERVER', errorMsg);
+					}
+	
+				} else {
+					runMethods('__ERROR', errorMsg);
+				}
+			};
+		};
+		
 		let self = {};
 		
 		const HARD_CODED_URLS = [
@@ -642,6 +954,10 @@ else {
 			if (handler !== undefined) {
 				offFromNode('newPendingTransaction', handler);
 			}
+		};
+		
+		let checkIsPolyfill = self.checkIsPolyfill = () => {
+			return true;
 		};
 		
 		return self;
