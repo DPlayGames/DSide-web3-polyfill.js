@@ -444,6 +444,11 @@ else {
 										onInfos = [];
 										
 										connectToFastestNode();
+										
+										isAccountSigned = false;
+										
+										// retry login.
+										login();
 									});
 									
 									isFoundFastestNode = true;
@@ -818,7 +823,7 @@ else {
 		};
 		
 		let login = self.login = (callback) => {
-			//REQUIRED: callback
+			//OPTIONAL: callback
 			
 			DPlayInventory.getAccountId((accountId) => {
 				
@@ -834,7 +839,9 @@ else {
 							if (isSucceed === true) {
 								isAccountSigned = true;
 								
-								callback();
+								if (callback !== undefined) {
+									callback();
+								}
 							}
 						});
 					});
