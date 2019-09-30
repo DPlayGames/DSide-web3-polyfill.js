@@ -302,6 +302,58 @@ else {
 			return true;
 		};
 		
+		let PARSE_STR = (dataStr) => {
+			//REQUIRED: dataStr
+			
+			try {
+	
+				let data = JSON.parse(dataStr);
+				
+				if (CHECK_IS_DATA(data) === true) {
+					return UNPACK_DATA(data);
+				}
+				
+				else if (CHECK_IS_ARRAY(data) === true) {
+					
+					let array = [];
+					
+					EACH(data, (data) => {
+						
+						if (CHECK_IS_DATA(data) === true) {
+							array.push(UNPACK_DATA(data));
+						}
+						
+						else if (CHECK_IS_ARRAY(data) === true) {
+							
+							EACH(data, (v, i) => {
+			
+								if (CHECK_IS_DATA(v) === true) {
+									data[i] = UNPACK_DATA(v);
+								}
+							});
+							
+							array.push(data);
+						}
+						
+						else {
+							array.push(data);
+						}
+					});
+					
+					return array;
+				}
+				
+				else {
+					return data;
+				}
+	
+			} catch(e) {
+	
+				// when error, return undefined.
+				return undefined;
+			}
+		};
+		
 		let CONNECT_TO_WEB_SOCKET_SERVER = (portOrParams, connectionListenerOrListeners) => {
 			//REQUIRED: portOrParams
 			//REQUIRED: portOrParams.isSecure
