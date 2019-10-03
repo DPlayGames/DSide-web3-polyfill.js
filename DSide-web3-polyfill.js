@@ -1141,6 +1141,8 @@ else {
 			
 			if (handler !== undefined) {
 				offFromNode('newChatMessage', handler);
+				
+				delete onNewChatMessageHandlers[networkName + '/' + target];
 			}
 		};
 		
@@ -1189,6 +1191,8 @@ else {
 			
 			if (handler !== undefined) {
 				offFromNode('newPendingTransaction', handler);
+				
+				delete onNewPendingTransactionHandlers[networkName + '/' + target];
 			}
 		};
 		
