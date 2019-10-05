@@ -994,6 +994,14 @@ else {
 			sendToNode('getGuildList', undefined, callback);
 		};
 		
+		// 특정 길드 정보를 가져옵니다.
+		let getGuild = self.getGuild = (guildId, callback) => {
+			//REQUIRED: guildId
+			//REQUIRED: callback
+			
+			sendToNode('getGuild', guildId, callback);
+		};
+		
 		// 특정 유저가 가입한 길드 정보를 가져옵니다.
 		let getAccountGuild = self.getAccountGuild = (accountId, callback) => {
 			//REQUIRED: accountId
