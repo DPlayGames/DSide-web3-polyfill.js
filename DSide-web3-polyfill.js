@@ -987,11 +987,25 @@ else {
 			sendToNode('getFriendIds', accountId, callback);
 		};
 		
-		// 길드 목록을 가져옵니다.
-		let getGuildList = self.getGuildList = (callback) => {
+		// 친구를 삭제합니다.
+		let removeFriend = self.removeFriend = (friendId, callback) => {
+			//REQUIRED: friendId
 			//REQUIRED: callback
 			
-			sendToNode('getGuildList', undefined, callback);
+			DPlayInventory.signData(friendId, (hash) => {
+				
+				sendToNode('removeFriend', {
+					friendId : friendId,
+					hash : hash
+				}, seperateHandler(callback));
+			});
+		};
+		
+		// 회원수 순으로 길드 ID들을 가져옵니다.
+		let getGuildIdsByMemberCount = self.getGuildIdsByMemberCount = (callback) => {
+			//REQUIRED: callback
+			
+			sendToNode('getGuildIdsByMemberCount', undefined, callback);
 		};
 		
 		// 특정 길드 정보를 가져옵니다.
@@ -1002,12 +1016,12 @@ else {
 			sendToNode('getGuild', guildId, callback);
 		};
 		
-		// 특정 유저가 가입한 길드 정보를 가져옵니다.
-		let getAccountGuild = self.getAccountGuild = (accountId, callback) => {
+		// 특정 유저가 가입한 길드 ID를 가져옵니다.
+		let getAccountGuildId = self.getAccountGuildId = (accountId, callback) => {
 			//REQUIRED: accountId
 			//REQUIRED: callback
 			
-			sendToNode('getAccountGuild', accountId, callback);
+			sendToNode('getAccountGuildId', accountId, callback);
 		};
 		
 		// 이름으로 길드를 찾습니다.
@@ -1094,30 +1108,57 @@ else {
 		};
 		
 		// 길드 가입 신청을 수락합니다.
-		let acceptGuildJoinRequest = self.acceptGuildJoinRequest = (requesterId, callbackOrHandlers) => {
+		let acceptGuildJoinRequest = self.acceptGuildJoinRequest = (requesterId, callback) => {
 			//REQUIRED: requesterId
-			//REQUIRED: callbackOrHandlers
-			//OPTIONAL: callbackOrHandlers.notValid
-			//OPTIONAL: callbackOrHandlers.notVerified
-			//OPTIONAL: callbackOrHandlers.notEnoughD
-			//REQUIRED: callbackOrHandlers.success
+			//REQUIRED: callback
 			
 			DPlayInventory.getAccountId((accountId) => {
 				
 				getAccountGuild(accountId, (guildData) => {
 					
-					guildData.memberIds.push(requesterId);
-					guildData.lastUpdateTime = getNodeTime(new Date());
+					let target = guildData.id;
 					
-					DPlayInventory.signData(guildData, (hash) => {
+					let data = {
+						target : target,
+						accountId : requesterId
+					};
+					
+					DPlayInventory.signData(data, (hash) => {
 						
-						sendToNode('updateGuild', {
-							data : guildData,
+						sendToNode('acceptGuildJoinRequest', {
+							target : target,
+							accountId : requesterId,
 							hash : hash
-						}, seperateHandler(callbackOrHandlers));
+						});
+						
+						callback();
 					});
 				});
 			});
+		};
+		
+		// 길드에서 탈퇴합니다.
+		let leaveGuild = self.leaveGuild = (callback) => {
+			//REQUIRED: callback
+			
+			DPlayInventory.getAccountId((accountId) => {
+				
+				getAccountGuild(accountId, (guildData) => {
+					
+					DPlayInventory.signData(accountId, (hash) => {
+						
+						sendToNode('acceptGuildJoinRequest', {
+							target : guildData.id,
+							accountId : accountId,
+							hash : hash
+						});
+						
+						callback();
+					});
+				});
+			});
+			
+			sendToNode('leaveGuild', params, callback);
 		};
 		
 		let isAccountSigned = false;
