@@ -20,7 +20,7 @@ else {
 			//OPTIONAL: params
 			
 			let cal = CALENDAR();
-				
+			
 			console.error(cal.getYear() + '-' + cal.getMonth(true) + '-' + cal.getDate(true) + ' ' + cal.getHour(true) + ':' + cal.getMinute(true) + ':' + cal.getSecond(true) + ' [' + tag + '] 오류가 발생했습니다. 오류 메시지: ' + errorMsg);
 			
 			if (params !== undefined) {
@@ -988,16 +988,19 @@ else {
 		};
 		
 		// 친구를 삭제합니다.
-		let removeFriend = self.removeFriend = (friendId, callback) => {
+		let removeFriend = self.removeFriend = (friendId, callbackOrHandlers) => {
 			//REQUIRED: friendId
-			//REQUIRED: callback
+			//REQUIRED: callbackOrHandlers
+			//OPTIONAL: callbackOrHandlers.notValid
+			//OPTIONAL: callbackOrHandlers.notVerified
+			//REQUIRED: callbackOrHandlers.success
 			
-			DPlayInventory.signData(friendId, (hash) => {
+			DPlayInventory.signText(friendId, (hash) => {
 				
 				sendToNode('removeFriend', {
 					friendId : friendId,
 					hash : hash
-				}, seperateHandler(callback));
+				}, seperateHandler(callbackOrHandlers));
 			});
 		};
 		
@@ -1150,11 +1153,11 @@ else {
 				
 				getAccountGuildId(accountId, (guildId) => {
 					
-					DPlayInventory.signData(accountId, (hash) => {
+					DPlayInventory.signText(accountId, (hash) => {
 						
-						sendToNode('acceptGuildJoinRequest', {
+						sendToNode('leaveGuild', {
 							target : guildId,
-							accountId : accountId,
+							id : accountId,
 							hash : hash
 						});
 						
@@ -1162,8 +1165,6 @@ else {
 					});
 				});
 			});
-			
-			sendToNode('leaveGuild', params, callback);
 		};
 		
 		let isAccountSigned = false;
