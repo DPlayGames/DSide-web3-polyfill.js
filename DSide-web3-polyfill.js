@@ -1124,14 +1124,15 @@ else {
 					
 					let data = {
 						target : guildId,
-						accountId : requesterId
+						createTime : new Date()
 					};
 					
 					DPlayInventory.signData(data, (hash) => {
 						
 						sendToNode('acceptGuildJoinRequest', {
 							target : guildId,
-							accountId : requesterId,
+							id : requesterId,
+							data : data,
 							hash : hash
 						});
 						
