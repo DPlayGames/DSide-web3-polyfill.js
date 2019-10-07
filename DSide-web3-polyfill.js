@@ -1077,6 +1077,14 @@ else {
 			sendToNode('getGuildJoinRequesterIds', guildId, callback);
 		};
 		
+		// 길드원들의 ID들을 가져옵니다.
+		let getGuildMemberIds = self.getGuildMemberIds = (guildId, callback) => {
+			//REQUIRED: guildId
+			//REQUIRED: callback
+			
+			sendToNode('getGuildMemberIds', guildId, callback);
+		};
+		
 		// 길드 가입 신청을 거절합니다.
 		let denyGuildJoinRequest = self.denyGuildJoinRequest = (requesterId, callback) => {
 			//REQUIRED: requesterId
@@ -1084,19 +1092,17 @@ else {
 			
 			DPlayInventory.getAccountId((accountId) => {
 				
-				getAccountGuild(accountId, (guildData) => {
-					
-					let target = guildData.id;
+				getAccountGuildId(accountId, (guildId) => {
 					
 					let data = {
-						target : target,
+						target : guildId,
 						accountId : requesterId
 					};
 					
 					DPlayInventory.signData(data, (hash) => {
 						
 						sendToNode('denyGuildJoinRequest', {
-							target : target,
+							target : guildId,
 							accountId : requesterId,
 							hash : hash
 						});
@@ -1114,19 +1120,17 @@ else {
 			
 			DPlayInventory.getAccountId((accountId) => {
 				
-				getAccountGuild(accountId, (guildData) => {
-					
-					let target = guildData.id;
+				getAccountGuildId(accountId, (guildId) => {
 					
 					let data = {
-						target : target,
+						target : guildId,
 						accountId : requesterId
 					};
 					
 					DPlayInventory.signData(data, (hash) => {
 						
 						sendToNode('acceptGuildJoinRequest', {
-							target : target,
+							target : guildId,
 							accountId : requesterId,
 							hash : hash
 						});
@@ -1143,12 +1147,12 @@ else {
 			
 			DPlayInventory.getAccountId((accountId) => {
 				
-				getAccountGuild(accountId, (guildData) => {
+				getAccountGuildId(accountId, (guildId) => {
 					
 					DPlayInventory.signData(accountId, (hash) => {
 						
 						sendToNode('acceptGuildJoinRequest', {
-							target : guildData.id,
+							target : guildId,
 							accountId : accountId,
 							hash : hash
 						});
