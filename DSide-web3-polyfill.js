@@ -1177,6 +1177,29 @@ else {
 			});
 		};
 		
+		// 길드에서 내쫒습니다.
+		let banGuildMember = self.banGuildMember = (accountId, callback) => {
+			//REQUIRED: accountId
+			//REQUIRED: callback
+			
+			DPlayInventory.getAccountId((signedAccountId) => {
+				
+				getAccountGuildId(signedAccountId, (guildId) => {
+					
+					DPlayInventory.signText(accountId, (hash) => {
+						
+						sendToNode('leaveGuild', {
+							target : guildId,
+							id : accountId,
+							hash : hash
+						});
+						
+						callback();
+					});
+				});
+			});
+		};
+		
 		let isAccountSigned = false;
 		
 		let checkAccountIsSigned = self.checkAccountIsSigned = () => {
