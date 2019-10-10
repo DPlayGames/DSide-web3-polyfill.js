@@ -987,6 +987,16 @@ else {
 			sendToNode('getFriendIds', accountId, callback);
 		};
 		
+		// 두 유저가 친구인지 확인합니다.
+		let checkIsFriend = self.checkIsFriend = (params, callback) => {
+			//REQUIRED: params
+			//REQUIRED: params.accountId
+			//REQUIRED: params.account2Id
+			//REQUIRED: callback
+			
+			sendToNode('checkIsFriend', params, callback);
+		};
+		
 		// 친구를 삭제합니다.
 		let removeFriend = self.removeFriend = (friendId, callbackOrHandlers) => {
 			//REQUIRED: friendId
